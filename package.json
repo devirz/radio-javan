@@ -1,0 +1,18 @@
+{
+  "name": "radio-javan",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@grammyjs/auto-chat-action": "^0.1.1",
+    "@grammyjs/conversations": "^1.2.0",
+    "axios": "^1.6.8",
+    "cheerio": "^1.0.0-rc.12",
+    "grammy": "^1.22.4"
+  }
+}
