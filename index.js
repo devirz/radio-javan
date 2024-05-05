@@ -39,7 +39,7 @@ async function greeting(conversation, ctx) {
     const result = await rjdl(message.text);
     ctx.chatAction = "upload_photo";
     await ctx.replyWithPhoto(result.photo, {
-      caption: `artist: ${result.artist}\nsong: ${result.song}\nplays: ${result.plays}\nlikes: ${result.likes}\npublished: ${result.date}`,
+      caption: `[👤] Artist: ${result.artist}\n[🔹] Song: ${result.song}\n[🎧] Plays: ${result.plays}\n[👍🏻] Likes: ${result.likes}\n- Published: ${result.date}`,
     });
     await ctx.api.deleteMessage(msg.chat.id, msg.message_id);
     if(result.size >= 20){
