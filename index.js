@@ -53,10 +53,9 @@ async function greeting(conversation, ctx) {
       await ctx.reply(texts.isPodcast, {
         reply_markup: new InlineKeyboard().url("دانلود", result.src)
       })
-      await ctx.replyWithPhoto(result.photo, {
-        caption: caption,
+      await bot.api.copyMessage(process.env.MUSIC_CHANNEL, poster.chat.id, poster.message_id, {
         reply_markup: new InlineKeyboard().url(result.song, result.src)
-      });
+      })
     } else {
       ctx.chatAction = "upload_audio"
       const music = await ctx.replyWithAudio(new InputFile({ url: result.src }))
@@ -93,10 +92,9 @@ bot.chatType("private").on("msg::url", async ctx => {
       await ctx.reply(texts.isPodcast, {
         reply_markup: new InlineKeyboard().url("دانلود", result.src)
       })
-      await ctx.replyWithPhoto(result.photo, {
-        caption: caption,
+      await bot.api.copyMessage(process.env.MUSIC_CHANNEL, poster.chat.id, poster.message_id, {
         reply_markup: new InlineKeyboard().url(result.song, result.src)
-      });
+      })
     } else {
       ctx.chatAction = "upload_audio"
       const music = await ctx.replyWithAudio(new InputFile({ url: result.src }))
