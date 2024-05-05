@@ -33,7 +33,7 @@ async function greeting(conversation, ctx) {
   ctx.chatAction = "typing";
   const status = await checkJoined(process.env.MUSIC_CHANNEL, ctx.from.id)
   if (status){
-    await ctx.reply("لطفا در کانال پشتیبانی عضو شوید", {
+    await ctx.reply(texts.join, {
       reply_markup: new InlineKeyboard().url("Radio Music", "https://t.me/RadioMusicIRZ")
     })
     return
@@ -45,7 +45,7 @@ async function greeting(conversation, ctx) {
     const result = await rjdl(message.text);
     ctx.chatAction = "upload_photo";
     const caption = `[👤] Artist: ${result.artist}\n[🔹] Song: ${result.song}\n[🎧] Plays: ${result.plays}\n[👍🏻] Likes: ${result.likes}\n- Published: ${result.date}`
-    await ctx.replyWithPhoto(result.photo, {
+    const poster = await ctx.replyWithPhoto(result.photo, {
       caption: caption,
     });
     await ctx.api.deleteMessage(msg.chat.id, msg.message_id);
@@ -56,9 +56,8 @@ async function greeting(conversation, ctx) {
     } else {
       ctx.chatAction = "upload_audio"
       const music = await ctx.replyWithAudio(new InputFile({ url: result.src }))
-      await bot.api.copyMessage(process.env.MUSIC_CHANNEL, music.chat.id, music.message_id, {
-        caption: caption
-      })
+      await bot.api.copyMessage(process.env.MUSIC_CHANNEL, poster.chat.id, poster.message_id)
+      await bot.api.copyMessage(process.env.MUSIC_CHANNEL, music.chat.id, music.message_id)
     }
   } else {
     await ctx.reply("لطفا از صحیح بودن لینک ارسالی اطمینان حاصل کنید")
@@ -70,7 +69,35 @@ bot.chatType("private").command("start", async (ctx) => {
 });
 
 bot.chatType("private").on("msg::url", async ctx => {
-  await ctx.conversation.enter("greeting");
+  const status = await checkJoined(process.env.MUSIC_CHANNEL, ctx.from.id)
+  if (status){
+    await ctx.reply(texts.join, {
+      reply_markup: new InlineKeyboard().url("Radio Music", "https://t.me/RadioMusicIRZ")
+    })
+    return
+  }
+  if (ctx.message.text.includes("rj.app")) {
+    const msg = await ctx.reply("درحال جستجو برای لینک مدنظر...");
+    const result = await rjdl(ctx.message.text);
+    ctx.chatAction = "upload_photo";
+    const caption = `[👤] Artist: ${result.artist}\n[🔹] Song: ${result.song}\n[🎧] Plays: ${result.plays}\n[👍🏻] Likes: ${result.likes}\n- Published: ${result.date}`
+    const poster = await ctx.replyWithPhoto(result.photo, {
+      caption: caption,
+    });
+    await ctx.api.deleteMessage(msg.chat.id, msg.message_id);
+    if(result.size >= 20){
+      await ctx.reply(texts.isPodcast, {
+        reply_markup: new InlineKeyboard().url("دانلود", result.src)
+      })
+    } else {
+      ctx.chatAction = "upload_audio"
+      const music = await ctx.replyWithAudio(new InputFile({ url: result.src }))
+      await bot.api.copyMessage(process.env.MUSIC_CHANNEL, poster.chat.id, poster.message_id)
+      await bot.api.copyMessage(process.env.MUSIC_CHANNEL, music.chat.id, music.message_id)
+    }
+  } else {
+    await ctx.reply("لطفا از صحیح بودن لینک ارسالی اطمینان حاصل کنید")
+  }
 })
 
 bot.catch((err) => {
