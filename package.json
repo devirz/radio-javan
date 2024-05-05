@@ -13,6 +13,7 @@
     "@grammyjs/conversations": "^1.2.0",
     "axios": "^1.6.8",
     "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.4.5",
     "grammy": "^1.22.4"
   }
 }

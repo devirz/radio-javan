@@ -1,14 +1,14 @@
-import get from "axios"
+import dotenv from "dotenv"
 import { Bot, InlineKeyboard, InputFile, session } from "grammy";
 import { conversations, createConversation } from "@grammyjs/conversations";
 import texts from "./text.json" assert { type: "json" };
 import rjdl from "./src/rjdl.js";
 import { autoChatAction } from "@grammyjs/auto-chat-action";
 
-const token = "7038512790:AAH_ibeJGR7KN8d0QxCPQsk7zRIOZr-KWSE";
+// configure .env file
+dotenv.config()
 
-const bot = new Bot(token);
-
+const bot = new Bot(process.env.TOKEN);
 // Install the session plugin.
 bot.use(
   session({
@@ -24,22 +24,29 @@ bot.use(conversations());
 bot.use(createConversation(greeting));
 bot.use(autoChatAction(bot.api));
 
-function shortenBytes(n) {
-  const k = n > 0 ? Math.floor((Math.log2(n)/10)) : 0
-  const count = Math.floor(n / Math.pow(1024, k))
-  return count
+async function checkJoined(chat, user){
+  const status = await bot.api.getChatMember(chat, user)
+  return status.status === "left"
 }
 
 async function greeting(conversation, ctx) {
   ctx.chatAction = "typing";
+  const status = await checkJoined(process.env.MUSIC_CHANNEL, ctx.from.id)
+  if (status){
+    await ctx.reply("لطفا در کانال پشتیبانی عضو شوید", {
+      reply_markup: new InlineKeyboard().url("Radio Music", "https://t.me/RadioMusicIRZ")
+    })
+    return
+  }
   await ctx.reply(texts.welcome);
   const { message } = await conversation.wait();
   if (message.text.includes("rj.app")) {
     const msg = await ctx.reply("درحال جستجو برای لینک مدنظر...");
     const result = await rjdl(message.text);
     ctx.chatAction = "upload_photo";
+    const caption = `[👤] Artist: ${result.artist}\n[🔹] Song: ${result.song}\n[🎧] Plays: ${result.plays}\n[👍🏻] Likes: ${result.likes}\n- Published: ${result.date}`
     await ctx.replyWithPhoto(result.photo, {
-      caption: `[👤] Artist: ${result.artist}\n[🔹] Song: ${result.song}\n[🎧] Plays: ${result.plays}\n[👍🏻] Likes: ${result.likes}\n- Published: ${result.date}`,
+      caption: caption,
     });
     await ctx.api.deleteMessage(msg.chat.id, msg.message_id);
     if(result.size >= 20){
@@ -48,16 +55,23 @@ async function greeting(conversation, ctx) {
       })
     } else {
       ctx.chatAction = "upload_audio"
-      await ctx.replyWithAudio(new InputFile({ url: result.src }))
+      const music = await ctx.replyWithAudio(new InputFile({ url: result.src }))
+      await bot.api.copyMessage(process.env.MUSIC_CHANNEL, music.chat.id, music.message_id, {
+        caption: caption
+      })
     }
   } else {
     await ctx.reply("لطفا از صحیح بودن لینک ارسالی اطمینان حاصل کنید")
   }
 }
 
-bot.command("start", async (ctx) => {
+bot.chatType("private").command("start", async (ctx) => {
   await ctx.conversation.enter("greeting");
 });
+
+bot.chatType("private").on("msg::url", async ctx => {
+  await ctx.conversation.enter("greeting");
+})
 
 bot.catch((err) => {
   const ctx = err.ctx;
