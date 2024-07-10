@@ -15,10 +15,13 @@ const rjdl = async (url) => {
   const $ = load(result.data)
   const link = $("#__NEXT_DATA__")
   const datas = JSON.parse(link.text())
+  // console.log(datas.props.pageProps)
   const { pageProps: { media: d } } = datas.props
-  const src = host + type + d.permlink + ".mp3"
-  const res = await get(src)
+  // const src = host + type + d.permlink + ".mp3"
+  const res = await get(d.link)
   const size = shortenBytes(res.headers["content-length"])
+  // const newSrc = Number.isNaN(size) ? d.link : src
+  // const destRes = await get(newSrc)
   return {
     title: d.title,
     photo: d.photo,
@@ -26,10 +29,9 @@ const rjdl = async (url) => {
     song: d.song || d.title,
     plays: d.plays,
     likes: d.likes,
-    src: src,
+    src: d.link,
     size: size,
     date: d.date_added || d.date
   }
 }
-
 export default rjdl
