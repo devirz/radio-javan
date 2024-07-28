@@ -13,8 +13,8 @@ const rjdl = async (url) => {
   const type = url.includes("rj.app/m/") ? "mp3/" : "podcast/"
   const result = await get(url, {
     proxy: {
-      host: 'localhost',
-      port: 443
+      host: '127.0.0.1',
+      port: 9051
     }
   })
   const $ = load(result.data)
