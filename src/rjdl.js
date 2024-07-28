@@ -11,7 +11,12 @@ function shortenBytes(n) {
 
 const rjdl = async (url) => {
   const type = url.includes("rj.app/m/") ? "mp3/" : "podcast/"
-  const result = await get(url)
+  const result = await get(url, {
+    proxy: {
+      host: 'localhost',
+      port: 443
+    }
+  })
   const $ = load(result.data)
   const link = $("#__NEXT_DATA__")
   const datas = JSON.parse(link.text())
