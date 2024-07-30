@@ -1,5 +1,6 @@
-import get from "axios"
+import axios from "axios"
 import { load } from "cheerio"
+import { HttpsProxyAgent } from "https-proxy-agent"
 
 const host = "https://host2.rj-mw1.com/media/"
 
@@ -9,9 +10,13 @@ function shortenBytes(n) {
   return count
 }
 
+const httpsAgent = new HttpsProxyAgent({ host: "127.0.0.1", port: 9051 })
+
+const req = axios.create({ httpsAgent })
+
 const rjdl = async (url) => {
   const type = url.includes("rj.app/m/") ? "mp3/" : "podcast/"
-  const result = await get(url)
+  const result = await req.get(url)
   const $ = load(result.data)
   const link = $("#__NEXT_DATA__")
   const datas = JSON.parse(link.text())
