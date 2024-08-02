@@ -16,14 +16,16 @@ const req = axios.create({ httpsAgent })
 
 const rjdl = async (url) => {
   const type = url.includes("rj.app/m/") ? "mp3/" : "podcast/"
-  const result = await req.get(url)
+  const result = await axios.get(url)
   const $ = load(result.data)
   const link = $("#__NEXT_DATA__")
   const datas = JSON.parse(link.text())
   // console.log(datas.props.pageProps)
   const { pageProps: { media: d } } = datas.props
-  // const src = host + type + d.permlink + ".mp3"
-  const res = await get(d.link)
+  // console.log(d)
+  const src = host + type + d.permlink + ".mp3"
+  // console.log(src)
+  const res = await axios.get(d.link)
   const size = shortenBytes(res.headers["content-length"])
   // const newSrc = Number.isNaN(size) ? d.link : src
   // const destRes = await get(newSrc)

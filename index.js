@@ -1,12 +1,15 @@
 import dotenv from "dotenv"
+import { readFileSync } from "fs"
 import { Bot, InlineKeyboard, InputFile, session } from "grammy";
 import { conversations, createConversation } from "@grammyjs/conversations";
-import texts from "./text.json" assert { type: "json" };
+//import texts from "./text.json" assert { type: "json" };
 import rjdl from "./src/rjdl.js";
 import { autoChatAction } from "@grammyjs/auto-chat-action";
 
 // configure .env file
 dotenv.config()
+const texts = JSON.parse(readFileSync("./text.json"))
+console.log(texts)
 
 const bot = new Bot(process.env.TOKEN);
 // Install the session plugin.
