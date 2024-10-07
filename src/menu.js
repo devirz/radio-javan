@@ -10,15 +10,15 @@ let meow = []
 let counter = 0;
 
 client.connect().then(() => console.log("connected to redis."))
-
-/*setInterval(async () => {
+/*
+;(async () => {
   const response = await fetch(`https://one-api.ir/radiojavan/?token=${token}&action=new_songs`)
   const result = await response.json()
+  console.log(result)
   if(result.status === 200){
-    meow = result.result
     await client.set("musics", JSON.stringify(result.result))
   }
-}, 5 * 60 * 1000);
+})()
 */
 
 async function updateMusics(userCounter){

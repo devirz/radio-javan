@@ -6,6 +6,7 @@ import { conversations, createConversation } from "@grammyjs/conversations";
 import rjdl from "./src/rjdl.js";
 import { indexMenu, downloadAndNextBtn, backBtn } from "./src/menu.js"
 import sendMusicLink from "./conversations/send_music_link.js"
+import client from "./db/index.js"
 import { autoChatAction } from "@grammyjs/auto-chat-action";
 
 // configure .env file
@@ -16,13 +17,25 @@ const texts = JSON.parse(readFileSync("./text.json"))
 const bot = new Bot(process.env.TOKEN);
 const token = "883737:6474575682c66"
 
-setInterval(async () => {
-  const response = await fetch(`https://one-api.ir/radiojavan/?token=${token}&action=new_songs`)
+;(async () => {
+ // const response = await fetch(`https://play.radiojavan.com/api/p/mp3s?type=trending&page=1`)
+  const response = await fetch("https://play.radiojavan.com/api/p/mp3s?type=trending&page=1", {
+  "headers": {
+    "accept": "application/json, text/plain, */*",
+    "sec-ch-ua": "\"Not-A.Brand\";v=\"99\", \"Chromium\";v=\"124\"",
+    "sec-ch-ua-mobile": "?1",
+    "sec-ch-ua-platform": "\"Android\"",
+    "x-api-key": "40e87948bd4ef75efe61205ac5f468a9fd2b970511acf58c49706ecb984f1d67",
+    "x-rj-user-agent": "Radio Javan/4.0.2/f6173917bde5c0102c894b5d2e478693c9d750b7 com.radioJavan.rj.web",
+    "Referer": "https://play.radiojavan.com/browse/songs",
+    "Referrer-Policy": "strict-origin-when-cross-origin"
+  },
+  "body": null,
+  "method": "GET"
+});
   const result = await response.json()
-  if(result.status === 200){
-    await client.set("musics", JSON.stringify(result.result))
-  }
-}, 5 * 60 * 1000);
+  await client.set("musics", JSON.stringify(result))
+})()
 
 
 // Install the session plugin.
