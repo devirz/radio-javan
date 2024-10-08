@@ -17,9 +17,9 @@ const texts = JSON.parse(readFileSync("./text.json"))
 const bot = new Bot(process.env.TOKEN);
 const token = "883737:6474575682c66"
 
-;(async () => {
+setInterval(async () => {
  // const response = await fetch(`https://play.radiojavan.com/api/p/mp3s?type=trending&page=1`)
-  const response = await fetch("https://play.radiojavan.com/api/p/mp3s?type=trending&page=1", {
+  const response = await fetch("https://play.radiojavan.com/api/p/mp3s?type=featured&page=1", {
   "headers": {
     "accept": "application/json, text/plain, */*",
     "sec-ch-ua": "\"Not-A.Brand\";v=\"99\", \"Chromium\";v=\"124\"",
@@ -35,7 +35,7 @@ const token = "883737:6474575682c66"
 });
   const result = await response.json()
   await client.set("musics", JSON.stringify(result))
-})()
+}, 5 * 60 * 1000)
 
 
 // Install the session plugin.
@@ -63,6 +63,8 @@ async function checkJoined(chat, user){
 
 bot.chatType("private").command("start", async (ctx) => {
   //await ctx.conversation.enter("greeting");
+  const from = ctx.message.chat.id
+  await client.sAdd("users", from.toString())
   const notJoined = await checkJoined(process.env.MUSIC_CHANNEL, ctx.from.id)
   if(notJoined){
     await ctx.reply("شما در کانال ما جوین نیستید\nلطفا پس از جوین شدن دوباره /start رو بزنین", {

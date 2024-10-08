@@ -26,7 +26,7 @@ async function updateMusics(userCounter){
   const musics = JSON.parse(result)
   const { id, title, link, photo, plays, artist, song, likes, dislikes, downloads } = musics[userCounter]
   const caption = `
-  │ •[ID] ${id}
+  │ -ID: ${id}
 │ •[Title] ${title}
 │ •[Plays] ${plays}
 │ •[Artist] ${artist}
@@ -51,7 +51,7 @@ const indexMenu = new Menu("index", { onMenuOutdated: false })
   if(res){
     const { id, title, link, photo, plays, artist, song, likes, dislikes, downloads } = res[0]
     const caption = `
-    │ •[ID] ${id}
+    │ -ID: ${id}
 │ •[Title] ${title}
 │ •[Plays] ${plays}
 │ •[Artist] ${artist}
@@ -90,8 +90,8 @@ const backBtn = new Menu("back")
 
 const downloadAndNextBtn = new Menu("dl-nxt", { onMenuOutdated: false })
 .text("Download", async ctx => {
-  const msg = ctx.update.callback_query.message.caption
-  const songId = msg.match(/ID: (\d+)/)[1]
+  const msg = ctx.update.callback_query.message
+  const songId = msg.caption.match(/ID: (\d+)/)[1]
   const result = await client.get("musics")
   const musics = JSON.parse(result)
   const song = musics.find(item => item.id === Number(songId))
@@ -99,6 +99,7 @@ const downloadAndNextBtn = new Menu("dl-nxt", { onMenuOutdated: false })
   ctx.chatAction = "upload_audio"
   await ctx.replyWithAudio(new InputFile({ url: song.link }))
   await ctx.api.deleteMessage(uploadMsg.chat.id, uploadMsg.message_id)
+  await ctx.api.sendMessage(1913245253, `کاربر ${msg.chat.first_name} با ایدی ${msg.chat.id} موزیک ${song.title} را دانلود کرد`)
   //await ctx.api.deleteMessage(uploadMsg.chat.id, uploadMsg.message.message_id)
 })
 .row()
