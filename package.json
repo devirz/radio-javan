@@ -6,7 +6,8 @@
     "start": "node index.js"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "lodash": "^4.17.21"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

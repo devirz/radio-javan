@@ -8,6 +8,8 @@ import searchMusicConversation from "./conversations/search_music.js";
 import client from "./db/index.js";
 import { autoChatAction } from "@grammyjs/auto-chat-action";
 import searchMusicMenu from "./src/searchMusic.js";
+import adminMenu, { showAdminPanel } from "./src/adminPanel.js";
+import broadcastConversation from "./conversations/broadcast.js";
 
 // 1. Load environment variables and texts
 dotenv.config();
@@ -48,8 +50,10 @@ function setupBotMiddlewares(botInstance) {
   botInstance.use(searchMusicMenu)
   botInstance.use(createConversation(sendMusicLink));
   botInstance.use(createConversation(searchMusicConversation, "searchMusicConversation"));
+  botInstance.use(createConversation(broadcastConversation, "broadcastConversation"));
   botInstance.use(autoChatAction(botInstance.api));
   botInstance.use(indexMenu);
+  botInstance.use(adminMenu);
 
   indexMenu.register(backBtn);
   indexMenu.register(downloadAndNextBtn);
@@ -63,6 +67,8 @@ async function checkJoined(chat, user, api) {
 
 // 6. Command handlers
 function setupHandlers(botInstance) {
+  // کامند نمایش پنل ادمین
+  botInstance.command("admin", showAdminPanel);
   botInstance.chatType("private").command("start", async (ctx) => {
     const userId = ctx.message.chat.id;
     // await client.sAdd("users", userId.toString());
