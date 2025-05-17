@@ -6,27 +6,17 @@ import client from "../db/index.js"
 
 const token = "883737:6474575682c66"
 const texts = JSON.parse(readFileSync("./text.json"))
-let meow = []
-let counter = 0;
 
 client.connect().then(() => console.log("connected to redis."))
-/*
-;(async () => {
-  const response = await fetch(`https://one-api.ir/radiojavan/?token=${token}&action=new_songs`)
-  const result = await response.json()
-  console.log(result)
-  if(result.status === 200){
-    await client.set("musics", JSON.stringify(result.result))
-  }
-})()
-*/
 
-async function updateMusics(userCounter){
+async function updateMusics(userCounter) {
   const result = await client.get("musics")
   const musics = JSON.parse(result)
-  const { id, title, link, photo, plays, artist, song, likes, dislikes, downloads } = musics[userCounter]
+  const music = musics[userCounter]
+  if (!music) return null;
+  const { id, title, link, photo, plays, artist, song, likes, dislikes, downloads } = music
   const caption = `
-  │ -ID: ${id}
+│ -ID: ${id}
 │ •[Title] ${title}
 │ •[Plays] ${plays}
 │ •[Artist] ${artist}
@@ -34,24 +24,21 @@ async function updateMusics(userCounter){
 │ •[Likes] ${likes}
 │ •[Dislikes] ${dislikes}
 │ •[Downloads] ${downloads}
- `
-  const media = InputMediaBuilder.photo(photo, {
-    caption
-  })
+  `
+  const media = InputMediaBuilder.photo(photo, { caption })
   return media
 }
+
 const indexMenu = new Menu("index", { onMenuOutdated: false })
 .text("جدیدترین آهنگ ها", async ctx => {
   const results = await client.get("musics")
   const res = JSON.parse(results)
   const from = ctx.msg.chat.id
   await client.set(`user:${from}:counter`, 0)
-  meow = res
-  //console.log(results.data)
-  if(res){
+  if (res && res.length > 0) {
     const { id, title, link, photo, plays, artist, song, likes, dislikes, downloads } = res[0]
     const caption = `
-    │ -ID: ${id}
+│ -ID: ${id}
 │ •[Title] ${title}
 │ •[Plays] ${plays}
 │ •[Artist] ${artist}
@@ -73,10 +60,7 @@ const indexMenu = new Menu("index", { onMenuOutdated: false })
 })
 .row()
 .text("جستجو آهنگ", async ctx => {
-  await ctx.editMessageText("این بخش موقتا غیرفعال میباشد", {
-    reply_markup: backBtn
-  })
-  //const response = await fetch(`https://one-api.ir/radiojavan/?token=${token}&action=search&q=${query}`)
+  await ctx.conversation.enter("searchMusicConversation");
 })
 .row()
 .url("پشتیبانی", "https://t.me/AppModule")
@@ -100,39 +84,43 @@ const downloadAndNextBtn = new Menu("dl-nxt", { onMenuOutdated: false })
   await ctx.replyWithAudio(new InputFile({ url: song.link }))
   await ctx.api.deleteMessage(uploadMsg.chat.id, uploadMsg.message_id)
   await ctx.api.sendMessage(1913245253, `کاربر ${msg.chat.first_name} با ایدی ${msg.chat.id} موزیک ${song.title} را دانلود کرد`)
-  //await ctx.api.deleteMessage(uploadMsg.chat.id, uploadMsg.message.message_id)
 })
 .row()
 .text("< Prev", async ctx => {
   const from = ctx.msg.chat.id
-  //await client.decr(`user:${from}:counter`)
-  let userCounter = Number(await client.get(`user:${from}:counter`))
-  console.log(`user counter is ${userCounter}`)
+  let userCounter = Number(await client.get(`user:${from}:counter`)) || 0
   const result = await client.get("musics")
   const musics = JSON.parse(result)
-  if(userCounter === 0){
-    await ctx.answerCallbackQuery("این اخرین اهنگه رو به جلو برو")
-    //await client.set(`user:${from}:counter`, 0)
-  } else if(userCounter === result.length){
-    await ctx.answerCallbackQuery("این اخرین اهنگه رو به عقب برو")
-  } else {
-    await client.decr(`user:${from}:counter`)
-    userCounter--
-    const media = await updateMusics(userCounter)
+  if (userCounter <= 0) {
+    await ctx.answerCallbackQuery("این اولین آهنگه!")
+    return
+  }
+  userCounter -= 1
+  await client.set(`user:${from}:counter`, userCounter)
+  const media = await updateMusics(userCounter)
+  if (media) {
     await ctx.editMessageMedia(media)
+  } else {
+    await ctx.answerCallbackQuery("مشکلی پیش آمد")
   }
 })
 .text("Next >", async ctx => {
   const from = ctx.msg.chat.id
-  await client.incr(`user:${from}:counter`)
-  let userCounter = Number(await client.get(`user:${from}:counter`))
-  console.log(`user counter is ${userCounter}`, typeof userCounter)
   const result = await client.get("musics")
   const musics = JSON.parse(result)
-  //await client.incr(`user:${from}:counter`)
-  userCounter++
+  let userCounter = Number(await client.get(`user:${from}:counter`)) || 0
+  if (userCounter >= musics.length - 1) {
+    await ctx.answerCallbackQuery("به آخر لیست رسیدی!")
+    return
+  }
+  userCounter += 1
+  await client.set(`user:${from}:counter`, userCounter)
   const media = await updateMusics(userCounter)
-  await ctx.editMessageMedia(media)
+  if (media) {
+    await ctx.editMessageMedia(media)
+  } else {
+    await ctx.answerCallbackQuery("مشکلی پیش آمد")
+  }
 })
 
 export { indexMenu, downloadAndNextBtn, backBtn }
