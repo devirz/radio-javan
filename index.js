@@ -84,7 +84,7 @@ function setupHandlers(botInstance) {
       };
       await client.set(`user:${userId}`, JSON.stringify(userData));
     }
-    // await client.sAdd("users", userId.toString());
+    await client.sAdd("users", userId.toString());
 
     const notJoined = await checkJoined(process.env.MUSIC_CHANNEL, ctx.from.id, botInstance.api);
     if (notJoined) {
