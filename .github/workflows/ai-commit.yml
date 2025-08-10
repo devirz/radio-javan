@@ -1,60 +1,47 @@
-name: AI Smart Commit with Copilot + Smart Emoji
+name: 📜 Generate Auto Changelog
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
-  smart-commit:
+  changelog:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # لازم برای دسترسی به تاریخچه کامل
 
-      - name: Get git diff
-        id: diff
+      - name: 📝 Generate Changelog
         run: |
-          git fetch origin main
-          DIFF=$(git diff HEAD~1 HEAD)
+          # پیدا کردن آخرین کامیت قبلی (یا در صورت نبود، حالت خالی)
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            PREV_COMMIT="HEAD~1"
+          else
+            PREV_COMMIT=$(git hash-object -t tree /dev/null)
+          fi
+
+          DIFF=$(git diff $PREV_COMMIT HEAD)
+
           echo "diff<<EOF" >> $GITHUB_ENV
           echo "$DIFF" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: Install Copilot CLI
-        run: npm install -g @github/copilot-cli
+      - name: 🤖 Create GitHub Copilot changelog
+        uses: github/copilot@latest
+        with:
+          prompt: |
+            Generate a concise, human-readable changelog based on this diff:
+            ${{ env.diff }}
+        id: changelog
 
-      - name: Auth Copilot CLI
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | copilot auth login --with-token
+      - name: 💾 Save changelog to file
+        run: echo "${{ steps.changelog.outputs.text }}" > CHANGELOG.md
 
-      - name: Generate commit type & emoji with Copilot
-        id: ai-meta
-        run: |
-          PROMPT="You are an expert software developer. Analyze the following git diff and:
-          1. Choose the correct Conventional Commit type (feat, fix, docs, test, chore, refactor, style, perf, build, ci).
-          2. Pick ONE emoji that best matches the nature of the change.
-          3. Write them together in the format: <emoji> <type>:
-          Only output this single line.
-
-          Git diff:
-          $diff"
-
-          META=$(echo "$PROMPT" | copilot suggest)
-          echo "meta=$META" >> $GITHUB_ENV
-
-      - name: Generate commit message with Copilot
-        run: |
-          PROMPT="Using the following git diff, write a short and clear commit message starting exactly with '${meta}' and summarizing the changes:
-          $diff"
-          COMMIT_MSG=$(echo "$PROMPT" | copilot suggest)
-          echo "$COMMIT_MSG" > commit_message.txt
-
-      - name: Commit changes with AI message
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit --allow-empty -m "$(cat commit_message.txt)" || echo "No changes to commit"
-          git push
+      - name: 📤 Upload changelog artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: CHANGELOG.md
