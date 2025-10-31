@@ -1,6 +1,6 @@
 import { Menu } from "@grammyjs/menu";
 import client from "../db/index.js";
-import { InputFile } from "grammy";
+// import { InputFile } from "grammy";
 
 // آیدی ادمین رباتت را اینجا بذار (میتونی چندتا هم بزاری)
 const ADMIN_IDS = [1913245253]; // اینجا آیدی عددی تلگرام خودت را بذار

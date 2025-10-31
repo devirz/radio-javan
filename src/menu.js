@@ -1,10 +1,10 @@
 import { Menu } from "@grammyjs/menu"
 import { InputMediaBuilder, InputFile } from "grammy"
 import { readFileSync } from "fs"
-import sendMusicLink from "../conversations/send_music_link.js"
+// import sendMusicLink from "../conversations/send_music_link.js"
 import client from "../db/index.js"
 
-const token = "883737:6474575682c66"
+// const token = "883737:6474575682c66"
 const texts = JSON.parse(readFileSync("./text.json"))
 
 client.connect().then(() => console.log("connected to redis."))
@@ -14,16 +14,16 @@ async function updateMusics(userCounter) {
   const musics = JSON.parse(result)
   const music = musics[userCounter]
   if (!music) return null;
-  const { id, title, link, photo, plays, artist, song, likes, dislikes, downloads } = music
+  const { id, title, photo, plays, artist, song, likes, dislikes, downloads } = music
   const caption = `
-│ -ID: ${id}
-│ •[Title] ${title}
-│ •[Plays] ${plays}
-│ •[Artist] ${artist}
-│ •[Song] ${song}
-│ •[Likes] ${likes}
-│ •[Dislikes] ${dislikes}
-│ •[Downloads] ${downloads}
+🎵 │ -ID: ${id}
+🎤 │ •[Title] ${title}
+👁️ │ •[Plays] ${plays}
+🎙️ │ •[Artist] ${artist}
+🎶 │ •[Song] ${song}
+👍 │ •[Likes] ${likes}
+👎 │ •[Dislikes] ${dislikes}
+⬇️ │ •[Downloads] ${downloads}
   `
   const media = InputMediaBuilder.photo(photo, { caption })
   return media
@@ -36,17 +36,17 @@ const indexMenu = new Menu("index", { onMenuOutdated: false })
   const from = ctx.msg.chat.id
   await client.set(`user:${from}:counter`, 0)
   if (res && res.length > 0) {
-    const { id, title, link, photo, plays, artist, song, likes, dislikes, downloads } = res[0]
+    const { id, title, photo, plays, artist, song, likes, dislikes, downloads } = res[0]
     const caption = `
-│ -ID: ${id}
-│ •[Title] ${title}
-│ •[Plays] ${plays}
-│ •[Artist] ${artist}
-│ •[Song] ${song}
-│ •[Likes] ${likes}
-│ •[Dislikes] ${dislikes}
-│ •[Downloads] ${downloads}
-    `
+🎵 │ -ID: ${id}
+🎤 │ •[Title] ${title}
+👁️ │ •[Plays] ${plays}
+🎙️ │ •[Artist] ${artist}
+🎶 │ •[Song] ${song}
+👍 │ •[Likes] ${likes}
+👎 │ •[Dislikes] ${dislikes}
+⬇️ │ •[Downloads] ${downloads}
+  `
     await ctx.replyWithPhoto(photo, {
       caption,
       reply_markup: downloadAndNextBtn
