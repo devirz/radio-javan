@@ -1,0 +1,47 @@
+name: 📜 Generate Auto Changelog
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # لازم برای دسترسی به تاریخچه کامل
+
+      - name: 📝 Generate Changelog
+        run: |
+          # پیدا کردن آخرین کامیت قبلی (یا در صورت نبود، حالت خالی)
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            PREV_COMMIT="HEAD~1"
+          else
+            PREV_COMMIT=$(git hash-object -t tree /dev/null)
+          fi
+
+          DIFF=$(git diff $PREV_COMMIT HEAD)
+
+          echo "diff<<EOF" >> $GITHUB_ENV
+          echo "$DIFF" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: 🤖 Create GitHub Copilot changelog
+        uses: github/copilot@latest
+        with:
+          prompt: |
+            Generate a concise, human-readable changelog based on this diff:
+            ${{ env.diff }}
+        id: changelog
+
+      - name: 💾 Save changelog to file
+        run: echo "${{ steps.changelog.outputs.text }}" > CHANGELOG.md
+
+      - name: 📤 Upload changelog artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: CHANGELOG.md
