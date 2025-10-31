@@ -84,7 +84,7 @@ function setupHandlers(botInstance) {
       };
       await client.set(`user:${userId}`, JSON.stringify(userData));
     }
-<<<<<<< HEAD
+
     // await client.sAdd("users", userId.toString());
     // const notJoined = await checkJoined(process.env.MUSIC_CHANNEL, ctx.from.id, botInstance.api);
     // if (notJoined) {
@@ -93,7 +93,7 @@ function setupHandlers(botInstance) {
     //   });
     //   return;
     // }
-=======
+
     await client.sAdd("users", userId.toString());
 
     const notJoined = await checkJoined(process.env.MUSIC_CHANNEL, ctx.from.id, botInstance.api);
@@ -103,7 +103,7 @@ function setupHandlers(botInstance) {
       });
       return;
     }
->>>>>>> 57e3204b987752d29e8236a61b2ffbd725df0cbe
+
     await ctx.reply(texts.welcome, { reply_markup: indexMenu });
   });
 }
