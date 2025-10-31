@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import { readFileSync } from "fs";
-import { Bot, session } from "grammy";
+import { Bot, GrammyError, session } from "grammy";
 import { conversations, createConversation } from "@grammyjs/conversations";
 import { indexMenu, downloadAndNextBtn, backBtn } from "./src/menu.js";
 import sendMusicLink from "./conversations/send_music_link.js";
@@ -85,14 +85,13 @@ function setupHandlers(botInstance) {
       await client.set(`user:${userId}`, JSON.stringify(userData));
     }
     // await client.sAdd("users", userId.toString());
-
-    const notJoined = await checkJoined(process.env.MUSIC_CHANNEL, ctx.from.id, botInstance.api);
-    if (notJoined) {
-      await ctx.reply("شما در کانال ما جوین نیستید\nلطفا پس از جوین شدن دوباره /start رو بزنین", {
-        reply_markup: new InlineKeyboard().url("Radio Music", "https://t.me/RadioMusicIRZ")
-      });
-      return;
-    }
+    // const notJoined = await checkJoined(process.env.MUSIC_CHANNEL, ctx.from.id, botInstance.api);
+    // if (notJoined) {
+    //   await ctx.reply("شما در کانال ما جوین نیستید\nلطفا پس از جوین شدن دوباره /start رو بزنین", {
+    //     reply_markup: new InlineKeyboard().url("Radio Music", "https://t.me/RadioMusicIRZ")
+    //   });
+    //   return;
+    // }
     await ctx.reply(texts.welcome, { reply_markup: indexMenu });
   });
 }
@@ -102,7 +101,14 @@ function setupErrorHandling(botInstance) {
   botInstance.catch((err) => {
     const ctx = err.ctx;
     console.error(`Error while handling update ${ctx.update.update_id}:`);
-    console.error(err);
+    if(err.error instanceof GrammyError){
+      console.error(err.error.description);
+      if(err.error.description.includes("Bad Request: chat not found")){
+        ctx.reply("خطای داخلی!\nربات تا ساعاتی دیگر اپدیت میشود لطفا اخبار را از کانال پشتیبانی پیگیری کنید")
+      }
+    } else {
+      console.error(err.error);
+    }
   });
 }
 
